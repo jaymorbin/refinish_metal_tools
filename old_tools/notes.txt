@@ -1,0 +1,64 @@
+> refinish-load
+
+...n/Dwarf Fortress/dfhack-config/scripts/refinish-load.lua:11: Cannot read field special_mat_table.metal: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ ...n/Dwarf Fortress/dfhack-config/scripts/refinish-load.lua:11: in upvalue 'secure_material'
+ ...n/Dwarf Fortress/dfhack-config/scripts/refinish-load.lua:39: in local 'restore_materials'
+ ...n/Dwarf Fortress/dfhack-config/scripts/refinish-load.lua:71: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> refinish-load
+
+Success! Restored 3 objects. Garbage collection and temperature neutralized.
+
+> refinish_test
+
+Success! Injected REFINISHED_STEEL_CRIMSON at index 319
+
+> refinish-load
+
+Success! Restored 3 objects. Garbage collection and temperature neutralized.
+
+> :lua local p=dfhack.gui.getMousePos(); local b=dfhack.buildings.findAtTile(p); if b then print("Building ID: "..b.id); print("Mat Type: "..b.mat_type.." | Mat Index: "..b.mat_index); if b.spec_type then print("Special Type: "..b.spec_type) end; if b.contained_items then for _,i in ipairs(b.contained_items) do print("  Contained Item ID: "..i.item.id.." | Mat: "..i.item.mat_index) end end else print("No building found.") end
+
+No building found.
+
+> refinish_test
+
+Success! Injected REFINISHED_STEEL_CRIMSON at index 319
+
+> refinish-load
+
+Success! Restored 3 objects. Garbage collection and temperature neutralized.
+
+> :lua local p=dfhack.gui.getMousePos(); local b=dfhack.buildings.findAtTile(p); if b then print("Bridge ID: "..b.id.." | Mat: "..b.mat_index); if b.contained_items then for _,i in ipairs(b.contained_items) do print("  Inside Bar ID: "..i.item.id.." | Mat: "..i.item.mat_index) end end else print("No bridge found.") end
+
+Bridge ID: 5 | Mat: 0
+  Inside Bar ID: 642 | Mat: 0
+
+> refinish_test
+
+Success! Injected REFINISHED_STEEL_CRIMSON at index 319
+
+> refinish-load
+
+Success! Restored 3 objects. Garbage collection and temperature neutralized.
+
+> :lua local p=dfhack.gui.getMousePos(); local b=dfhack.buildings.findAtTile(p); if b then print("Bridge ID: "..b.id.." | Mat: "..b.mat_index); if b.contained_items then for _,i in ipairs(b.contained_items) do print("  Inside Bar ID: "..i.item.id.." | Mat: "..i.item.mat_index) end end else print("No bridge found.") end
+
+Bridge ID: 5 | Mat: 319
+  Inside Bar ID: 642 | Mat: 319

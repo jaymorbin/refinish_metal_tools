@@ -1,0 +1,25 @@
+check item id:
+
+:lua local i = df.item.find(502); print("ID: " .. i.id .. " | Type: " .. tostring(i._type) .. " | MatType: " .. tostring(i.mat_type) .. " | MatIndex: " .. tostring(i.mat_index) .. " | ConstFlag: " .. tostring(i.flags.construction))
+
+
+
+force item to iron:
+
+:lua local i = df.item.find(502); i.mat_index = 0; print("Manually washed ID " .. i.id .. ". Index is now: " .. tostring(i.mat_index))
+
+
+
+test for existing refinished objects:
+
+:lua local t=319; local loose=0; local built=0; print("--- HIDDEN WALL AUDIT ---"); for _, i in ipairs(df.global.world.items.all) do if i.mat_type == 0 and i.mat_index == t then if i.flags.construction or i.flags.in_building then built=built+1; print("Found BUILT item ID: " .. i.id .. " (This is your wall!)") else loose=loose+1; print("Found LOOSE item ID: " .. i.id .. " (This is on the floor)") end; i.mat_index = 0; i.mat_index = t; end end; print("--- AUDIT COMPLETE: " .. loose .. " loose bars, " .. built .. " built walls. ---")
+
+
+manual refinish restore:
+
+:lua local i = df.item.find(502); i.mat_index = 319; print("Manually restored ID " .. i.id .. ". Index is now: " .. tostring(i.mat_index))
+
+
+test wall shell:
+
+:lua local id=502; local i=df.item.find(id); local c_mat="NOT FOUND"; for _,v in ipairs(df.global.world.constructions) do if v.pos.x==i.pos.x and v.pos.y==i.pos.y and v.pos.z==i.pos.z then c_mat=tostring(v.mat_index); break; end end; print("Item Index: " .. tostring(i.mat_index) .. " | Wall Shell Index: " .. c_mat)

@@ -1,0 +1,1 @@
+:lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319

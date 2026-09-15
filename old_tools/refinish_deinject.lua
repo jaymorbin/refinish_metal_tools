@@ -1,0 +1,1 @@
+:lua local r=df.global.world.raws.inorganics.all; if #r > 319 then for i=#r-1, 319, -1 do r:erase(i) end; print("Ghost indices cleared. Count restored to 319 (0-318). Ready to save.") else print("Memory is already at vanilla count.") end	

@@ -1,0 +1,1146 @@
+airs(found_items) do     local i = df.item.find(id)     if i then         i.mat_index = target         print("Targeted Item ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  -- 4. Target and Restore Buildings by ID for _, id in ipairs(found_bldgs) do     local b = df.building.find(id)     if b then         b.mat_index = target         print("Targeted Building ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  print("--- PROOF OF CONCEPT COMPLETE ---")
+
+--- AUDIT START ---
+
+> :lua local target = 319 local found_items = {} local found_bldgs = {}  print("--- AUDIT START (Scanning fort, this may take a few seconds) ---")  -- 1. Scan Items Safely for _, item in ipairs(df.global.world.items.all) do     local ok, idx = pcall(function() return item.mat_index end)     if ok and idx == target then         table.insert(found_items, item.id)         print("Found Item ID: " .. item.id .. " -> Changing to Iron (0)")         item.mat_index = 0     end end  -- 2. Scan Buildings Safely for _, bld in ipairs(df.global.world.buildings.all) do     local ok, idx = pcall(function() return bld.mat_index end)     if ok and idx == target then         table.insert(found_bldgs, bld.id)         print("Found Building ID: " .. bld.id .. " -> Changing to Iron (0)")         bld.mat_index = 0     end end  print("--- SANITIZATION COMPLETE. NOW RESTORING... ---")  -- 3. Target and Restore Items by ID for _, id in ipairs(found_items) do     local i = df.item.find(id)     if i then         i.mat_index = target         print("Targeted Item ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  -- 4. Target and Restore Buildings by ID for _, id in ipairs(found_bldgs) do     local b = df.building.find(id)     if b then         b.mat_index = target         print("Targeted Building ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  print("--- PROOF OF CONCEPT COMPLETE ---")
+
+--- AUDIT START (Scanning fort, this may take a few seconds) ---
+
+> refinish_test
+
+Success! Injected REFINISHED_STEEL_CRIMSON at index 319
+
+> :lua local target = 319 local found_items = {} local found_bldgs = {}  print("--- AUDIT START (Scanning fort, this may take a few seconds) ---")  -- 1. Scan Items Safely for _, item in ipairs(df.global.world.items.all) do     local ok, idx = pcall(function() return item.mat_index end)     if ok and idx == target then         table.insert(found_items, item.id)         print("Found Item ID: " .. item.id .. " -> Changing to Iron (0)")         item.mat_index = 0     end end  -- 2. Scan Buildings Safely for _, bld in ipairs(df.global.world.buildings.all) do     local ok, idx = pcall(function() return bld.mat_index end)     if ok and idx == target then         table.insert(found_bldgs, bld.id)         print("Found Building ID: " .. bld.id .. " -> Changing to Iron (0)")         bld.mat_index = 0     end end  print("--- SANITIZATION COMPLETE. NOW RESTORING... ---")  -- 3. Target and Restore Items by ID for _, id in ipairs(found_items) do     local i = df.item.find(id)     if i then         i.mat_index = target         print("Targeted Item ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  -- 4. Target and Restore Buildings by ID for _, id in ipairs(found_bldgs) do     local b = df.building.find(id)     if b then         b.mat_index = target         print("Targeted Building ID: " .. id .. " -> Restored to Crimson Steel (319)")     end end  print("--- PROOF OF CONCEPT COMPLETE ---")
+
+--- AUDIT START (Scanning fort, this may take a few seconds) ---
+
+> :lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319
+
+Command finished successfully
+
+> refinish_test
+
+Safety Check: Crimson Steel is already loaded. Aborting injection.
+
+> :lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319
+
+Command finished successfully
+
+> :lua local target = 319 local found_items = 0  print("--- STRICT METALS AUDIT START ---")  for _, item in ipairs(df.global.world.items.all) do     -- 0 means INORGANIC METAL. This stops it from deleting wood!     if item.mat_type == 0 and item.mat_index == target then         found_items = found_items + 1         print("Found Crimson Steel Item ID: " .. item.id)                  -- Swap to Iron         item.mat_index = 0          print("Changed ID " .. item.id .. " to Iron.")                  -- Swap instantly back to Crimson         item.mat_index = target          print("Restored ID " .. item.id .. " back to Crimson.")     end end  print("--- AUDIT COMPLETE. Found " .. found_items .. " items. ---")
+
+(lua command):1: 'end' expected near <eof>
+
+> :lua local target=319; local found=0; print("--- STRICT METALS AUDIT START ---"); for _, item in ipairs(df.global.world.items.all) do if item.mat_type == 0 and item.mat_index == target then found = found + 1; print("Found Crimson ID: " .. item.id); item.mat_index = 0; print("Changed to Iron."); item.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE. Found " .. found .. " items. ---")
+
+--- STRICT METALS AUDIT START ---
+Found Crimson ID: 418
+Changed to Iron.
+Restored to Crimson.
+(lua command):1: Cannot read field item_remainsst.mat_type: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319
+
+Command finished successfully
+
+> :lua local target=319; local f=0; print("--- BULLETPROOF AUDIT START ---"); for _, i in ipairs(df.global.world.items.all) do local ok, is_target = pcall(function() return i.mat_type == 0 and i.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson ID: " .. i.id); i.mat_index = 0; print("Changed to Iron."); i.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " items. ---")
+
+--- BULLETPROOF AUDIT START ---
+Found Crimson ID: 417
+Changed to Iron.
+Restored to Crimson.
+Found Crimson ID: 418
+Changed to Iron.
+Restored to Crimson.
+--- AUDIT COMPLETE: Found 2 items. ---
+
+> :lua local target=319; local f=0; print("--- BUILDINGS AUDIT START ---"); for _, b in ipairs(df.global.world.buildings.all) do local ok, is_target = pcall(function() return b.mat_type == 0 and b.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson Building ID: " .. b.id); b.mat_index = 0; print("Changed to Iron."); b.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " buildings. ---")
+
+--- BUILDINGS AUDIT START ---
+--- AUDIT COMPLETE: Found 0 buildings. ---
+
+> :lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319
+
+Command finished successfully
+
+> :lua local target=319; local f=0; print("--- BUILDINGS AUDIT START ---"); for _, b in ipairs(df.global.world.buildings.all) do local ok, is_target = pcall(function() return b.mat_type == 0 and b.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson Building ID: " .. b.id); b.mat_index = 0; print("Changed to Iron."); b.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " buildings. ---")
+
+--- BUILDINGS AUDIT START ---
+--- AUDIT COMPLETE: Found 0 buildings. ---
+
+> :lua it = dfhack.gui.getSelectedItem(true); it.mat_type = 0; it.mat_index = 319
+
+Command finished successfully
+
+> :lua local target=319; local f=0; print("--- BUILDINGS AUDIT START ---"); for _, b in ipairs(df.global.world.buildings.all) do local ok, is_target = pcall(function() return b.mat_type == 0 and b.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson Building ID: " .. b.id); b.mat_index = 0; print("Changed to Iron."); b.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " buildings. ---")
+
+--- BUILDINGS AUDIT START ---
+Found Crimson Building ID: 3
+Changed to Iron.
+Restored to Crimson.
+--- AUDIT COMPLETE: Found 1 buildings. ---
+
+> :lua local p=dfhack.gui.getMousePos(); if p then dfhack.run_command("gui/gm-editor", "dfhack.maps.getTileBlock("..p.x..","..p.y..","..p.z..")") else print("Please hover your mouse over the map.") end
+
+Command finished successfully
+
+> :lua local target=319; local c=0; print("--- WALL AUDIT START ---"); for _,blk in ipairs(df.global.world.map.map_blocks) do for _,ev in ipairs(blk.block_events) do if df.block_square_event_material_spst:is_instance(ev) then for x=0,15 do for y=0,15 do if ev.mat_type[x][y]==0 and ev.mat_index[x][y]==target then c=c+1; local gx=blk.map_pos.x+x; local gy=blk.map_pos.y+y; print("Found Crimson Wall at X:"..gx.." Y:"..gy.." Z:"..blk.map_pos.z); ev.mat_index[x][y]=0; ev.mat_index[x][y]=target; print("Swapped to Iron and back.") end end end end end end; print("--- AUDIT COMPLETE: Found "..c.." walls. ---")
+
+--- WALL AUDIT START ---
+(lua command):1: attempt to index a nil value (field 'block_square_event_material_spst')
+stack traceback:
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local c=0; print("--- WALL AUDIT START ---"); for _,blk in ipairs(df.global.world.map.map_blocks) do for _,ev in ipairs(blk.block_events) do local ok, idx = pcall(function() return ev.mat_index end); if ok and type(idx)=="number" and idx==t then local ok2, typ = pcall(function() return ev.mat_type end); if ok2 and typ==0 then c=c+1; print("Found Crimson Wall Event at map block Z:"..blk.map_pos.z); ev.mat_index=0; ev.mat_index=t; print("Swapped to Iron and back successfully.") end end end end; print("--- AUDIT COMPLETE: Found "..c.." wall events. ---")
+
+--- WALL AUDIT START ---
+--- AUDIT COMPLETE: Found 0 wall events. ---
+
+> :lua local p=dfhack.gui.getMousePos(); if not p then print("Hover over the pillar!") return end; local b=dfhack.maps.getTileBlock(p.x,p.y,p.z); local t=319; local f=0; print("--- TILE AUDIT ---"); for i,ev in ipairs(b.block_events) do print("Event: "..tostring(ev)); local ok, mi = pcall(function() return ev.mat_index end); if ok then if type(mi)=="number" and mi==t then ev.mat_index=0; ev.mat_index=t; f=f+1; print("-> SWAP SUCCESS (Single)") elseif type(mi)=="userdata" then local ok2, mt = pcall(function() return ev.mat_type end); if ok2 then for x=0,15 do for y=0,15 do if mt[x][y]==0 and mi[x][y]==t then mi[x][y]=0; mi[x][y]=t; f=f+1; print("-> SWAP SUCCESS (Array ["..x.."]["..y.."])") end end end end end end end; print("--- AUDIT COMPLETE. Swaps: "..f.." ---")
+
+--- TILE AUDIT ---
+Event: <block_square_event_grassst: 0x1fdb876a850>
+Event: <block_square_event_grassst: 0x1fdb876a070>
+Event: <block_square_event_grassst: 0x1fdb876c7d0>
+Event: <block_square_event_grassst: 0x1fdb876ca10>
+Event: <block_square_event_grassst: 0x1fdb8769bf0>
+Event: <block_square_event_grassst: 0x1fdb8768b10>
+Event: <block_square_event_grassst: 0x1fdb8769d10>
+--- AUDIT COMPLETE. Swaps: 0 ---
+
+> :lua local p=dfhack.gui.getMousePos(); if not p then print("Hover over the pillar!") return end; local b=dfhack.maps.getTileBlock(p.x,p.y,p.z); local t=319; local f=0; print("--- TILE AUDIT ---"); for i,ev in ipairs(b.block_events) do print("Event: "..tostring(ev)); local ok, mi = pcall(function() return ev.mat_index end); if ok then if type(mi)=="number" and mi==t then ev.mat_index=0; ev.mat_index=t; f=f+1; print("-> SWAP SUCCESS (Single)") elseif type(mi)=="userdata" then local ok2, mt = pcall(function() return ev.mat_type end); if ok2 then for x=0,15 do for y=0,15 do if mt[x][y]==0 and mi[x][y]==t then mi[x][y]=0; mi[x][y]=t; f=f+1; print("-> SWAP SUCCESS (Array ["..x.."]["..y.."])") end end end end end end end; print("--- AUDIT COMPLETE. Swaps: "..f.." ---")
+
+--- TILE AUDIT ---
+Event: <block_square_event_grassst: 0x1fdb876a850>
+Event: <block_square_event_grassst: 0x1fdb876a070>
+Event: <block_square_event_grassst: 0x1fdb876c7d0>
+Event: <block_square_event_grassst: 0x1fdb876ca10>
+Event: <block_square_event_grassst: 0x1fdb8769bf0>
+Event: <block_square_event_grassst: 0x1fdb8768b10>
+Event: <block_square_event_grassst: 0x1fdb8769d10>
+--- AUDIT COMPLETE. Swaps: 0 ---
+
+> :lua local t=319; local loose=0; local built=0; print("--- HIDDEN WALL AUDIT ---"); for _, i in ipairs(df.global.world.items.all) do if i.mat_type == 0 and i.mat_index == t then if i.flags.construction or i.flags.in_building then built=built+1; print("Found BUILT item ID: " .. i.id .. " (This is your wall!)") else loose=loose+1; print("Found LOOSE item ID: " .. i.id .. " (This is on the floor)") end; i.mat_index = 0; i.mat_index = t; end end; print("--- AUDIT COMPLETE: " .. loose .. " loose bars, " .. built .. " built walls. ---")
+
+--- HIDDEN WALL AUDIT ---
+Found LOOSE item ID: 415 (This is on the floor)
+Found LOOSE item ID: 416 (This is on the floor)
+Found BUILT item ID: 417 (This is your wall!)
+Found BUILT item ID: 418 (This is your wall!)
+(lua command):1: Cannot read field item_remainsst.mat_type: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local loose=0; local built=0; print("--- HIDDEN WALL AUDIT ---"); for _, i in ipairs(df.global.world.items.all) do if i.mat_type == 0 and i.mat_index == t then if i.flags.construction or i.flags.in_building then built=built+1; print("Found BUILT item ID: " .. i.id .. " (This is your wall!)") else loose=loose+1; print("Found LOOSE item ID: " .. i.id .. " (This is on the floor)") end; i.mat_index = 0; i.mat_index = t; end end; print("--- AUDIT COMPLETE: " .. loose .. " loose bars, " .. built .. " built walls. ---")
+
+--- HIDDEN WALL AUDIT ---
+Found LOOSE item ID: 415 (This is on the floor)
+Found LOOSE item ID: 416 (This is on the floor)
+Found LOOSE item ID: 417 (This is on the floor)
+Found BUILT item ID: 418 (This is your wall!)
+(lua command):1: Cannot read field item_remainsst.mat_type: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local loose=0; local built=0; print("--- HIDDEN WALL AUDIT ---"); for _, i in ipairs(df.global.world.items.all) do if i.mat_type == 0 and i.mat_index == t then if i.flags.construction or i.flags.in_building then built=built+1; print("Found BUILT item ID: " .. i.id .. " (This is your wall!)") else loose=loose+1; print("Found LOOSE item ID: " .. i.id .. " (This is on the floor)") end; i.mat_index = 0; i.mat_index = t; end end; print("--- AUDIT COMPLETE: " .. loose .. " loose bars, " .. built .. " built walls. ---")
+
+--- HIDDEN WALL AUDIT ---
+Found LOOSE item ID: 415 (This is on the floor)
+Found LOOSE item ID: 416 (This is on the floor)
+Found LOOSE item ID: 417 (This is on the floor)
+Found BUILT item ID: 418 (This is your wall!)
+(lua command):1: Cannot read field item_remainsst.mat_type: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> gui/create-item
+
+Command finished successfully
+
+> :lua local i=dfhack.gui.getSelectedItem(true); if i then i.mat_index=319; print("Successfully refinished item to Crimson Steel!") else print("Error: No item selected in the UI.") end
+
+Successfully refinished item to Crimson Steel!
+
+> :lua local t=319; local mt=df.global.world.raws.mat_table; mt.metals:insert(#mt.metals, t); mt.weapon_metals:insert(#mt.weapon_metals, t); mt.armor_metals:insert(#mt.armor_metals, t); print("Index 319 authorized for Weapons, Armor, and Metalsmithing.")
+
+(lua command):1: Cannot read field special_mat_table.metals: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua for k,v in pairs(df.global.world.raws.mat_table) do print(k) end
+
+organic_types
+organic_indexes
+organic_temp
+builtin
+syndromes
+effects
+
+> :lua for k, v in pairs(df.global.world.raws.mat_table) do print(k, type(v)) end
+
+organic_types userdata
+organic_indexes userdata
+organic_temp userdata
+builtin userdata
+syndromes userdata
+effects userdata
+
+> :lua for k, v in pairs(df.global.world.raws.mat_table) do print(k, type(v)) end
+
+organic_types userdata
+organic_indexes userdata
+organic_temp userdata
+builtin userdata
+syndromes userdata
+effects userdata
+
+> :lua local mt = df.global.world.raws.mat_table.builtin; for k, v in pairs(mt) do print(k) end
+
+INORGANIC
+AMBER
+CORAL
+GLASS_GREEN
+GLASS_CLEAR
+GLASS_CRYSTAL
+WATER
+COAL
+POTASH
+ASH
+PEARLASH
+LYE
+MUD
+VOMIT
+SALT
+FILTH_B
+FILTH_Y
+UNKNOWN_SUBSTANCE
+GRIME
+CREATURE_1
+CREATURE_2
+CREATURE_3
+CREATURE_4
+CREATURE_5
+CREATURE_6
+CREATURE_7
+CREATURE_8
+CREATURE_9
+CREATURE_10
+CREATURE_11
+CREATURE_12
+CREATURE_13
+CREATURE_14
+CREATURE_15
+CREATURE_16
+CREATURE_17
+CREATURE_18
+CREATURE_19
+CREATURE_20
+CREATURE_21
+CREATURE_22
+CREATURE_23
+CREATURE_24
+CREATURE_25
+CREATURE_26
+CREATURE_27
+CREATURE_28
+CREATURE_29
+CREATURE_30
+CREATURE_31
+CREATURE_32
+CREATURE_33
+CREATURE_34
+CREATURE_35
+CREATURE_36
+CREATURE_37
+CREATURE_38
+CREATURE_39
+CREATURE_40
+CREATURE_41
+CREATURE_42
+CREATURE_43
+CREATURE_44
+CREATURE_45
+CREATURE_46
+CREATURE_47
+CREATURE_48
+CREATURE_49
+CREATURE_50
+CREATURE_51
+CREATURE_52
+CREATURE_53
+CREATURE_54
+CREATURE_55
+CREATURE_56
+CREATURE_57
+CREATURE_58
+CREATURE_59
+CREATURE_60
+CREATURE_61
+CREATURE_62
+CREATURE_63
+CREATURE_64
+CREATURE_65
+CREATURE_66
+CREATURE_67
+CREATURE_68
+CREATURE_69
+CREATURE_70
+CREATURE_71
+CREATURE_72
+CREATURE_73
+CREATURE_74
+CREATURE_75
+CREATURE_76
+CREATURE_77
+CREATURE_78
+CREATURE_79
+CREATURE_80
+CREATURE_81
+CREATURE_82
+CREATURE_83
+CREATURE_84
+CREATURE_85
+CREATURE_86
+CREATURE_87
+CREATURE_88
+CREATURE_89
+CREATURE_90
+CREATURE_91
+CREATURE_92
+CREATURE_93
+CREATURE_94
+CREATURE_95
+CREATURE_96
+CREATURE_97
+CREATURE_98
+CREATURE_99
+CREATURE_100
+CREATURE_101
+CREATURE_102
+CREATURE_103
+CREATURE_104
+CREATURE_105
+CREATURE_106
+CREATURE_107
+CREATURE_108
+CREATURE_109
+CREATURE_110
+CREATURE_111
+CREATURE_112
+CREATURE_113
+CREATURE_114
+CREATURE_115
+CREATURE_116
+CREATURE_117
+CREATURE_118
+CREATURE_119
+CREATURE_120
+CREATURE_121
+CREATURE_122
+CREATURE_123
+CREATURE_124
+CREATURE_125
+CREATURE_126
+CREATURE_127
+CREATURE_128
+CREATURE_129
+CREATURE_130
+CREATURE_131
+CREATURE_132
+CREATURE_133
+CREATURE_134
+CREATURE_135
+CREATURE_136
+CREATURE_137
+CREATURE_138
+CREATURE_139
+CREATURE_140
+CREATURE_141
+CREATURE_142
+CREATURE_143
+CREATURE_144
+CREATURE_145
+CREATURE_146
+CREATURE_147
+CREATURE_148
+CREATURE_149
+CREATURE_150
+CREATURE_151
+CREATURE_152
+CREATURE_153
+CREATURE_154
+CREATURE_155
+CREATURE_156
+CREATURE_157
+CREATURE_158
+CREATURE_159
+CREATURE_160
+CREATURE_161
+CREATURE_162
+CREATURE_163
+CREATURE_164
+CREATURE_165
+CREATURE_166
+CREATURE_167
+CREATURE_168
+CREATURE_169
+CREATURE_170
+CREATURE_171
+CREATURE_172
+CREATURE_173
+CREATURE_174
+CREATURE_175
+CREATURE_176
+CREATURE_177
+CREATURE_178
+CREATURE_179
+CREATURE_180
+CREATURE_181
+CREATURE_182
+CREATURE_183
+CREATURE_184
+CREATURE_185
+CREATURE_186
+CREATURE_187
+CREATURE_188
+CREATURE_189
+CREATURE_190
+CREATURE_191
+CREATURE_192
+CREATURE_193
+CREATURE_194
+CREATURE_195
+CREATURE_196
+CREATURE_197
+CREATURE_198
+CREATURE_199
+CREATURE_200
+HIST_FIG_1
+HIST_FIG_2
+HIST_FIG_3
+HIST_FIG_4
+HIST_FIG_5
+HIST_FIG_6
+HIST_FIG_7
+HIST_FIG_8
+HIST_FIG_9
+HIST_FIG_10
+HIST_FIG_11
+HIST_FIG_12
+HIST_FIG_13
+HIST_FIG_14
+HIST_FIG_15
+HIST_FIG_16
+HIST_FIG_17
+HIST_FIG_18
+HIST_FIG_19
+HIST_FIG_20
+HIST_FIG_21
+HIST_FIG_22
+HIST_FIG_23
+HIST_FIG_24
+HIST_FIG_25
+HIST_FIG_26
+HIST_FIG_27
+HIST_FIG_28
+HIST_FIG_29
+HIST_FIG_30
+HIST_FIG_31
+HIST_FIG_32
+HIST_FIG_33
+HIST_FIG_34
+HIST_FIG_35
+HIST_FIG_36
+HIST_FIG_37
+HIST_FIG_38
+HIST_FIG_39
+HIST_FIG_40
+HIST_FIG_41
+HIST_FIG_42
+HIST_FIG_43
+HIST_FIG_44
+HIST_FIG_45
+HIST_FIG_46
+HIST_FIG_47
+HIST_FIG_48
+HIST_FIG_49
+HIST_FIG_50
+HIST_FIG_51
+HIST_FIG_52
+HIST_FIG_53
+HIST_FIG_54
+HIST_FIG_55
+HIST_FIG_56
+HIST_FIG_57
+HIST_FIG_58
+HIST_FIG_59
+HIST_FIG_60
+HIST_FIG_61
+HIST_FIG_62
+HIST_FIG_63
+HIST_FIG_64
+HIST_FIG_65
+HIST_FIG_66
+HIST_FIG_67
+HIST_FIG_68
+HIST_FIG_69
+HIST_FIG_70
+HIST_FIG_71
+HIST_FIG_72
+HIST_FIG_73
+HIST_FIG_74
+HIST_FIG_75
+HIST_FIG_76
+HIST_FIG_77
+HIST_FIG_78
+HIST_FIG_79
+HIST_FIG_80
+HIST_FIG_81
+HIST_FIG_82
+HIST_FIG_83
+HIST_FIG_84
+HIST_FIG_85
+HIST_FIG_86
+HIST_FIG_87
+HIST_FIG_88
+HIST_FIG_89
+HIST_FIG_90
+HIST_FIG_91
+HIST_FIG_92
+HIST_FIG_93
+HIST_FIG_94
+HIST_FIG_95
+HIST_FIG_96
+HIST_FIG_97
+HIST_FIG_98
+HIST_FIG_99
+HIST_FIG_100
+HIST_FIG_101
+HIST_FIG_102
+HIST_FIG_103
+HIST_FIG_104
+HIST_FIG_105
+HIST_FIG_106
+HIST_FIG_107
+HIST_FIG_108
+HIST_FIG_109
+HIST_FIG_110
+HIST_FIG_111
+HIST_FIG_112
+HIST_FIG_113
+HIST_FIG_114
+HIST_FIG_115
+HIST_FIG_116
+HIST_FIG_117
+HIST_FIG_118
+HIST_FIG_119
+HIST_FIG_120
+HIST_FIG_121
+HIST_FIG_122
+HIST_FIG_123
+HIST_FIG_124
+HIST_FIG_125
+HIST_FIG_126
+HIST_FIG_127
+HIST_FIG_128
+HIST_FIG_129
+HIST_FIG_130
+HIST_FIG_131
+HIST_FIG_132
+HIST_FIG_133
+HIST_FIG_134
+HIST_FIG_135
+HIST_FIG_136
+HIST_FIG_137
+HIST_FIG_138
+HIST_FIG_139
+HIST_FIG_140
+HIST_FIG_141
+HIST_FIG_142
+HIST_FIG_143
+HIST_FIG_144
+HIST_FIG_145
+HIST_FIG_146
+HIST_FIG_147
+HIST_FIG_148
+HIST_FIG_149
+HIST_FIG_150
+HIST_FIG_151
+HIST_FIG_152
+HIST_FIG_153
+HIST_FIG_154
+HIST_FIG_155
+HIST_FIG_156
+HIST_FIG_157
+HIST_FIG_158
+HIST_FIG_159
+HIST_FIG_160
+HIST_FIG_161
+HIST_FIG_162
+HIST_FIG_163
+HIST_FIG_164
+HIST_FIG_165
+HIST_FIG_166
+HIST_FIG_167
+HIST_FIG_168
+HIST_FIG_169
+HIST_FIG_170
+HIST_FIG_171
+HIST_FIG_172
+HIST_FIG_173
+HIST_FIG_174
+HIST_FIG_175
+HIST_FIG_176
+HIST_FIG_177
+HIST_FIG_178
+HIST_FIG_179
+HIST_FIG_180
+HIST_FIG_181
+HIST_FIG_182
+HIST_FIG_183
+HIST_FIG_184
+HIST_FIG_185
+HIST_FIG_186
+HIST_FIG_187
+HIST_FIG_188
+HIST_FIG_189
+HIST_FIG_190
+HIST_FIG_191
+HIST_FIG_192
+HIST_FIG_193
+HIST_FIG_194
+HIST_FIG_195
+HIST_FIG_196
+HIST_FIG_197
+HIST_FIG_198
+HIST_FIG_199
+HIST_FIG_200
+PLANT_1
+PLANT_2
+PLANT_3
+PLANT_4
+PLANT_5
+PLANT_6
+PLANT_7
+PLANT_8
+PLANT_9
+PLANT_10
+PLANT_11
+PLANT_12
+PLANT_13
+PLANT_14
+PLANT_15
+PLANT_16
+PLANT_17
+PLANT_18
+PLANT_19
+PLANT_20
+PLANT_21
+PLANT_22
+PLANT_23
+PLANT_24
+PLANT_25
+PLANT_26
+PLANT_27
+PLANT_28
+PLANT_29
+PLANT_30
+PLANT_31
+PLANT_32
+PLANT_33
+PLANT_34
+PLANT_35
+PLANT_36
+PLANT_37
+PLANT_38
+PLANT_39
+PLANT_40
+PLANT_41
+PLANT_42
+PLANT_43
+PLANT_44
+PLANT_45
+PLANT_46
+PLANT_47
+PLANT_48
+PLANT_49
+PLANT_50
+PLANT_51
+PLANT_52
+PLANT_53
+PLANT_54
+PLANT_55
+PLANT_56
+PLANT_57
+PLANT_58
+PLANT_59
+PLANT_60
+PLANT_61
+PLANT_62
+PLANT_63
+PLANT_64
+PLANT_65
+PLANT_66
+PLANT_67
+PLANT_68
+PLANT_69
+PLANT_70
+PLANT_71
+PLANT_72
+PLANT_73
+PLANT_74
+PLANT_75
+PLANT_76
+PLANT_77
+PLANT_78
+PLANT_79
+PLANT_80
+PLANT_81
+PLANT_82
+PLANT_83
+PLANT_84
+PLANT_85
+PLANT_86
+PLANT_87
+PLANT_88
+PLANT_89
+PLANT_90
+PLANT_91
+PLANT_92
+PLANT_93
+PLANT_94
+PLANT_95
+PLANT_96
+PLANT_97
+PLANT_98
+PLANT_99
+PLANT_100
+PLANT_101
+PLANT_102
+PLANT_103
+PLANT_104
+PLANT_105
+PLANT_106
+PLANT_107
+PLANT_108
+PLANT_109
+PLANT_110
+PLANT_111
+PLANT_112
+PLANT_113
+PLANT_114
+PLANT_115
+PLANT_116
+PLANT_117
+PLANT_118
+PLANT_119
+PLANT_120
+PLANT_121
+PLANT_122
+PLANT_123
+PLANT_124
+PLANT_125
+PLANT_126
+PLANT_127
+PLANT_128
+PLANT_129
+PLANT_130
+PLANT_131
+PLANT_132
+PLANT_133
+PLANT_134
+PLANT_135
+PLANT_136
+PLANT_137
+PLANT_138
+PLANT_139
+PLANT_140
+PLANT_141
+PLANT_142
+PLANT_143
+PLANT_144
+PLANT_145
+PLANT_146
+PLANT_147
+PLANT_148
+PLANT_149
+PLANT_150
+PLANT_151
+PLANT_152
+PLANT_153
+PLANT_154
+PLANT_155
+PLANT_156
+PLANT_157
+PLANT_158
+PLANT_159
+PLANT_160
+PLANT_161
+PLANT_162
+PLANT_163
+PLANT_164
+PLANT_165
+PLANT_166
+PLANT_167
+PLANT_168
+PLANT_169
+PLANT_170
+PLANT_171
+PLANT_172
+PLANT_173
+PLANT_174
+PLANT_175
+PLANT_176
+PLANT_177
+PLANT_178
+PLANT_179
+PLANT_180
+PLANT_181
+PLANT_182
+PLANT_183
+PLANT_184
+PLANT_185
+PLANT_186
+PLANT_187
+PLANT_188
+PLANT_189
+PLANT_190
+PLANT_191
+PLANT_192
+PLANT_193
+PLANT_194
+PLANT_195
+PLANT_196
+PLANT_197
+PLANT_198
+PLANT_199
+PLANT_200
+UNUSED01
+UNUSED02
+UNUSED03
+UNUSED04
+UNUSED05
+UNUSED06
+UNUSED07
+UNUSED08
+UNUSED09
+UNUSED10
+UNUSED11
+UNUSED12
+UNUSED13
+UNUSED14
+UNUSED15
+UNUSED16
+UNUSED17
+UNUSED18
+UNUSED19
+UNUSED20
+UNUSED21
+UNUSED22
+UNUSED23
+UNUSED24
+UNUSED25
+UNUSED26
+UNUSED27
+UNUSED28
+UNUSED29
+UNUSED30
+UNUSED31
+UNUSED32
+UNUSED33
+UNUSED34
+UNUSED35
+UNUSED36
+UNUSED37
+UNUSED38
+UNUSED39
+UNUSED40
+
+> :lua for k, v in pairs(df.global.world.raws.mat_table) do if type(v) == 'table' then print(k .. " (size: " .. #v .. ")") end end
+
+Command finished successfully
+
+> :lua print("Weapons:", #df.global.world.raws.mat_table.weapon.mat_index) print("Armor:", #df.global.world.raws.mat_table.armor.mat_index) print("Shields:", #df.global.world.raws.mat_table.shield.mat_index)
+
+(lua command):1: Cannot read field special_mat_table.weapon: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local f=0; for _, i in ipairs(df.global.world.items.all) do local ok, m_type = pcall(function() return i.mat_type end); local ok2, m_index = pcall(function() return i.mat_index end); if ok and ok2 and m_type == 0 and m_index == t then i.mat_index = 0; f=f+1; end end; print("Swapped " .. f .. " Crimson items/walls to Iron. You can now safely uninject and save.")
+
+Swapped 2 Crimson items/walls to Iron. You can now safely uninject and save.
+
+> :lua local t=319; local f=0; for _, c in ipairs(df.global.world.constructions) do if c.mat_type == 0 and c.mat_index == t then c.mat_index = 0; f=f+1; end end; print("Swapped " .. f .. " Walls/Pillars to Iron.")
+
+(lua command):1: Cannot read field world.constructions: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local f=0; for _, i in ipairs(df.global.world.items.all) do if i.mat_index == t then i.mat_index = 0; f=f+1; end end; print("Force-swapped " .. f .. " items/walls of any type to Iron.")
+
+(lua command):1: Cannot read field item_remainsst.mat_index: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local f=0; for _, block in ipairs(df.global.world.map.map_blocks) do if block.construction_data then for _, con in ipairs(block.construction_data) do if con.mat_index == t then con.mat_index = 0; f=f+1 end end end end; print("Swapped " .. f .. " Map-Construction-Tiles to Iron.")
+
+(lua command):1: Cannot read field map_block.construction_data: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local f=0; for _, blk in ipairs(df.global.world.map.map_blocks) do for _, ev in ipairs(blk.block_events) do if df.block_square_event_constructionst:is_instance(ev) then for x=0,15 do for y=0,15 do if ev.mat_index[x][y] == t then ev.mat_index[x][y] = 0; f=f+1 end end end end end end print("Swapped " .. f .. " Wall/Floor tiles to Iron.")
+
+(lua command):1: attempt to index a nil value (field 'block_square_event_constructionst')
+stack traceback:
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local f=0; for _,i in ipairs(df.global.world.items.all) do pcall(function() if i.mat_index==t then i.mat_index=0; f=f+1 end end) end; for _,b in ipairs(df.global.world.buildings.all) do pcall(function() if b.mat_index==t then b.mat_index=0; f=f+1 end end) end; for _,c in ipairs(df.global.world.constructions) do pcall(function() if c.mat_index==t then c.mat_index=0; f=f+1 end end) end; print("Cleaned " .. f .. " total objects (Items, Buildings, and Walls).")
+
+(lua command):1: Cannot read field world.constructions: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local t=319; local loose=0; local built=0; print("--- HIDDEN WALL AUDIT ---"); for _, i in ipairs(df.global.world.items.all) do if i.mat_type == 0 and i.mat_index == t then if i.flags.construction or i.flags.in_building then built=built+1; print("Found BUILT item ID: " .. i.id .. " (This is your wall!)") else loose=loose+1; print("Found LOOSE item ID: " .. i.id .. " (This is on the floor)") end; i.mat_index = 0; i.mat_index = t; end end; print("--- AUDIT COMPLETE: " .. loose .. " loose bars, " .. built .. " built walls. ---")
+
+--- HIDDEN WALL AUDIT ---
+(lua command):1: Cannot read field item_remainsst.mat_type: not found.
+stack traceback:
+ [C]: in metamethod '__index'
+ (lua command):1: in main chunk
+ [C]: in function 'safecall'
+ ...eam/steamapps/common/Dwarf Fortress/hack/scripts/lua.lua:39: in local 'script_code'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1117: in function 'dfhack.run_script_with_env'
+ (...tail calls...)
+ [C]: in field 'runCommand'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1160: in upvalue '_run_command'
+ ...team\steamapps\common\Dwarf Fortress\hack\lua\dfhack.lua:1164: in function 'dfhack.run_command_silent'
+ [C]: in field 'hideGuard'
+ ...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1148: in function <...apps/common/Dwarf Fortress/hack/scripts/gui/launcher.lua:1126>
+ [C]: in field 'on_submit'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:44: in method 'onInput'
+ ...ommon\Dwarf Fortress\hack\lua\gui\widgets\edit_field.lua:214: in function 'gui.widgets.edit_field.onInput'
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:862: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:856>
+ (...tail calls...)
+ ...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1119: in function <...)\Steam\steamapps\common\Dwarf Fortress\hack\lua\gui.lua:1103>
+ [C]: in ?
+
+> :lua local target=319; local f=0; print("--- BUILDINGS AUDIT START ---"); for _, b in ipairs(df.global.world.buildings.all) do local ok, is_target = pcall(function() return b.mat_type == 0 and b.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson Building ID: " .. b.id); b.mat_index = 0; print("Changed to Iron."); b.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " buildings. ---")
+
+--- BUILDINGS AUDIT START ---
+--- AUDIT COMPLETE: Found 0 buildings. ---
+
+> :lua local t=319; local f=0; for _, i in ipairs(df.global.world.items.all) do local ok, m_type = pcall(function() return i.mat_type end); local ok2, m_index = pcall(function() return i.mat_index end); if ok and ok2 and m_type == 0 and m_index == t then i.mat_index = 0; f=f+1; end end; print("Swapped " .. f .. " Crimson items/walls to Iron. You can now safely uninject and save.")
+
+Swapped 0 Crimson items/walls to Iron. You can now safely uninject and save.
+
+> :lua local refinished_count = 0 local target_index = 319 -- Our Crimson Steel index  -- 1. Audit Items for _, item in ipairs(df.global.world.items.all) do     if item.mat_index == target_index then         refinished_count = refinished_count + 1         print("Found Item: ID " .. item.id)     end end  -- 2. Audit Buildings for _, bld in ipairs(df.global.world.buildings.all) do     if bld.mat_index == target_index then         refinished_count = refinished_count + 1         print("Found Building: ID " .. bld.id .. " at " .. bld.x1 .. "," .. bld.y1)     end end  -- 3. Audit Constructions (Walls/Floors) for _, const in ipairs(df.global.world.constructions) do     if const.mat_index == target_index then         refinished_count = refinished_count + 1         print("Found Construction at " .. const.pos.x .. "," .. const.pos.y .. "," .. const.pos.z)     end end  print("Total Refinished objects found: " .. refinished_count)
+
+Command finished successfully
+
+> :lua local target=319; local f=0; print("--- BUILDINGS AUDIT START ---"); for _, b in ipairs(df.global.world.buildings.all) do local ok, is_target = pcall(function() return b.mat_type == 0 and b.mat_index == target end); if ok and is_target then f=f+1; print("Found Crimson Building ID: " .. b.id); b.mat_index = 0; print("Changed to Iron."); b.mat_index = target; print("Restored to Crimson.") end end; print("--- AUDIT COMPLETE: Found " .. f .. " buildings. ---")
+
+--- BUILDINGS AUDIT START ---
+--- AUDIT COMPLETE: Found 0 buildings. ---

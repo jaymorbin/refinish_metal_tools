@@ -1,0 +1,156 @@
+--@ module = true
+-- refinish-prototype.lua
+-- Isolated test environment for global tech evaluation and injection.
+-- Usage: 'refinish-prototype inject' or 'refinish-prototype clear'
+
+local args = {...}
+local command = args[1] or "help"
+
+-- ==========================================
+-- 1. THE LOGIC MATRIX (Tech Gates)
+-- ==========================================
+-- Tweak these string checks as you explore the raw arrays in your test save.
+local TECH_GATES = {
+    STEEL_RXN   = "STEEL_MAKING",  -- Vanilla and AACO steel reaction
+    GEM_JOB     = df.job_type.CutGems,
+    MASON_JOB   = df.job_type.ConstructDoors, -- Standard proxy for masonry tech
+    FORGE_JOB   = df.job_type.ForgeWeapon,    -- Standard proxy for metalcraft tech
+}
+
+-- ==========================================
+-- SCRIPT LOGIC: CLEAR ALL (The Undo Button)
+-- ==========================================
+if command == "clear" then
+    print("==================================================")
+    print("PROTOTYPE: EXECUTING GLOBAL ENTITY CLEAR")
+    print("==================================================")
+    
+    local reactions = df.global.world.raws.reactions.reactions
+    local rs_ids_to_remove = {}
+    
+    -- 1. Map all RS reactions
+    for _, rxn in ipairs(reactions) do
+        if string.find(rxn.code, "REFINISH_STEEL_") then
+            rs_ids_to_remove[rxn.index] = true
+        end
+    end
+
+    local total_cleared = 0
+    -- 2. Sweep all civilizations backwards and erase
+    for _, civ in ipairs(df.global.world.entities.all) do
+        if civ.type == df.historical_entity_type.Civilization and civ.entity_raw then
+            local permitted = civ.entity_raw.workshops.permitted_reaction_id
+            local civ_cleared = 0
+            
+            for i = #permitted - 1, 0, -1 do
+                if rs_ids_to_remove[permitted[i]] then
+                    permitted:erase(i)
+                    civ_cleared = civ_cleared + 1
+                    total_cleared = total_cleared + 1
+                end
+            end
+            if civ_cleared > 0 then
+                print(string.format("  -> Cleared %d RS tags from Civ ID: %d", civ_cleared, civ.id))
+            end
+        end
+    end
+    print(string.format("Prototype: Successfully purged %d total RS tags from global entities.", total_cleared))
+    return
+end
+
+-- ==========================================
+-- SCRIPT LOGIC: INJECT (The Tech Evaluator)
+-- ==========================================
+if command == "inject" then
+    print("==================================================")
+    print("PROTOTYPE: EXECUTING TECH EVALUATION & INJECTION")
+    print("==================================================")
+    
+    local reactions = df.global.world.raws.reactions.reactions
+    
+    -- 1. Build Global Reaction Lookups
+    local rxn_idx_to_code = {}
+    local rs_payloads = {
+        FINISHES = {},
+        STONE_GRIND = {},
+        GEM_GRIND = {},
+        METAL_GRIND = {}
+    }
+
+    for _, rxn in ipairs(reactions) do
+        rxn_idx_to_code[rxn.index] = rxn.code
+        
+        -- Categorize our RS reactions so we know what to inject
+        if string.find(rxn.code, "REFINISH_STEEL_RXN_LUA_GRIND_COMMON") or string.find(rxn.code, "REFINISH_STEEL_RXN_LUA_GRIND_ANY") then
+            table.insert(rs_payloads.STONE_GRIND, rxn.index)
+        elseif string.find(rxn.code, "REFINISH_STEEL_RXN_LUA_GRIND_GEMS") then
+            table.insert(rs_payloads.GEM_GRIND, rxn.index)
+        elseif string.find(rxn.code, "REFINISH_STEEL_RXN_LUA_GRIND_METAL") then
+            table.insert(rs_payloads.METAL_GRIND, rxn.index)
+        elseif string.find(rxn.code, "REFINISH_STEEL_RXN_") then
+            table.insert(rs_payloads.FINISHES, rxn.index)
+        end
+    end
+
+    local civs_processed = 0
+
+    -- 2. Sweep Entities & Evaluate Tech Matrix
+    for _, civ in ipairs(df.global.world.entities.all) do
+        if civ.type == df.historical_entity_type.Civilization and civ.entity_raw then
+            
+            local has_steel = false
+            local has_mason = false
+            local has_jeweler = false
+            local has_forge = false
+            
+            -- Evaluate Permitted Reactions
+            local permitted_rxns = civ.entity_raw.workshops.permitted_reaction_id
+            for _, pid in ipairs(permitted_rxns) do
+                if rxn_idx_to_code[pid] == TECH_GATES.STEEL_RXN then has_steel = true break end
+            end
+            
+            -- Evaluate Permitted Jobs (To determine if they can grind)
+            local permitted_jobs = civ.entity_raw.jobs.permitted_job
+            for _, job_id in ipairs(permitted_jobs) do
+                if job_id == TECH_GATES.MASON_JOB then has_mason = true end
+                if job_id == TECH_GATES.GEM_JOB then has_jeweler = true end
+                if job_id == TECH_GATES.FORGE_JOB then has_forge = true end
+            end
+
+            -- Print diagnostic for this civ if it passed ANY tech gate
+            if has_steel or has_mason or has_jeweler or has_forge then
+                print(string.format("Evaluating Civ ID %d (%s):", civ.id, civ.entity_raw.code))
+                print(string.format("  -> Steel: %s | Mason: %s | Jeweler: %s | Forge: %s", tostring(has_steel), tostring(has_mason), tostring(has_jeweler), tostring(has_forge)))
+                
+                -- Build existing lookup to prevent double-injection
+                local already_permitted = {}
+                for _, pid in ipairs(permitted_rxns) do already_permitted[pid] = true end
+                
+                local injected_count = 0
+                local function inject_payload(payload_table)
+                    for _, target_idx in ipairs(payload_table) do
+                        if not already_permitted[target_idx] then
+                            permitted_rxns:insert('#', target_idx)
+                            injected_count = injected_count + 1
+                        end
+                    end
+                end
+
+                -- Filter through Logic Matrix and Inject
+                if has_steel then inject_payload(rs_payloads.FINISHES) end
+                if has_mason then inject_payload(rs_payloads.STONE_GRIND) end
+                if has_jeweler then inject_payload(rs_payloads.GEM_GRIND) end
+                if has_forge then inject_payload(rs_payloads.METAL_GRIND) end
+                
+                print(string.format("  -> Successfully injected %d Refinish Steel reactions.", injected_count))
+                civs_processed = civs_processed + 1
+            end
+        end
+    end
+    
+    print("==================================================")
+    print(string.format("Prototype: Scan complete. Processed %d capable civilizations.", civs_processed))
+    return
+end
+
+print("Refinish Prototype commands: 'inject' or 'clear'")

@@ -1,0 +1,14 @@
+lua "for i=200, 300 do print(i .. ' = ' .. tostring(df.job_type[i])) end"
+
+
+
+lua "local a = df.job_type.attrs; if a then print('--- 209 (CustomReaction) ATTRS ---'); printall(a[209]); print('--- 216 (MakeTool) ATTRS ---'); printall(a[216]) else print('Attributes table not exposed by DFHack.') end"
+
+
+lua "local a = df.job_type; if a then print('--- 209 (CustomReaction) ---'); printall(a[209]); print('--- 216 (MakeTool) ---'); printall(a[216]) else print('table not exposed by DFHack.') end"
+
+
+
+lua "local a = df.job_type.attrs[209].possible_item; if a then print('--- 209 (CustomReaction) ---'); printall(a) else print('table not exposed by DFHack.') end"
+
+lua "local a = df.job_type.attrs[216].possible_item; if a then print('--- 216 (CustomReaction) ---'); printall(a) else print('table not exposed by DFHack.') end"

@@ -1,0 +1,46 @@
+df.global.world.entities.all[civ]
+	.entity_raw
+		.raws (array containing raw entity tag strings in sequence)
+		.equipment (string-id labelled array of vector arrays)
+		.jobs
+			.permitted_job (ID-labelled boolean array)
+			.permitted_labor (ID-labelled boolean array)
+			.world_construction (ID-labelled boolean array of constructions [ROAD|TUNNEL|BRIDGE|WALL])
+		.workshops
+			.permitted_building_str (apparently empty)
+			.permitted_building_id (array of building ID vectors)
+			.permitted_reaction_str (apparently empty)
+			.permitted_reaction_id (array of vectors representing reactions [including our many tens of thousands])
+		.gem_shapes (array of vectors presumably representing gem cuts)
+		.stone_shapes (array of vectors like with gems, but curiouser)
+	.flags (appears to have little of use to us surprisingly)
+	.resources
+		.metal
+			.pick
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.weapon
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.ranged
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.ammo
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.ammo_metal
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.armor
+				.mat_type (vectors)
+				.mat_index (vectors)
+			.anvil
+				.mat_type (vectors)
+				.mat_index (vectors)
+		.metals (vectors)
+		.stones (vectors)
+		.gems (vectors)
+		.permitted_skill (ID-labelled boolean array)
+	.metal_proficiency (integer)
+	.weapon_proficiencies (vectors, second vector also contains string label identifying type)
+
